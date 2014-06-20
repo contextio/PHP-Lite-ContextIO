@@ -296,7 +296,7 @@ class ContextIO {
 	}
 
 	public function addUser($params) {
-		$params = $this->_filterParams($params, array('email','first_name','last_name','type','server','username','provider_consumer_key','provider_token','provider_token_secret','service_level','password','use_ssl','port','raw_file_list','expunge_on_deleted_flag'), array('email'));
+		$params = $this->_filterParams($params, array('email','first_name','last_name','type','server','username','provider_consumer_key','provider_token','provider_token_secret','service_level','password','use_ssl','port','raw_file_list','expunge_on_deleted_flag', 'migrate_account_id'), array('email'));
 		if ($params === false) {
 			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
