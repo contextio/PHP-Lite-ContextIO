@@ -54,7 +54,7 @@ $r = $contextio->listEmailAccountFolders(USER_ID, $params);
 print_r($r);
 
 // Now that you know the USER_ID, LABEL, and FOLDER you can list messages
-define('FOLDER', 'A FOLDER NAME')
+define('FOLDER', 'A FOLDER NAME');
 $params = array('label'=>LABEL, 'folder'=>FOLDER);
 $r = $contextio->listMessages(USER_ID, $params);
 print_r($r);
