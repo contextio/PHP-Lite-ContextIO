@@ -152,6 +152,112 @@ class ContextIO {
 		return $this->get($user, "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId), $params);
 	}
 
+
+	/**
+	 * Returns a list of files
+	 * @param string $delimiter custom hierarchy delimiter
+	 * @return ContextIOResponse
+	 */
+	public function listFiles($user, $params=null) {
+		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
+			throw new InvalidArgumentException('account must be string representing userId');
+		}
+		if (! is_array($params)) {
+			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+		}
+		$params = $this->_filterParams($params, array('label','folder','message_id', 'delimiter'), array('label','folder','message_id'));
+		if ($params === false) {
+			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+		}
+		$email_account = $params['label'];
+		$folder = $params['folder'];
+		$messageId = $params['message_id'];
+		unset($params['label']);
+		unset($params['folder']);
+		unset($params['message_id']);
+		return $this->get($user, "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId) . "/attachments", $params);
+	}
+
+
+	/**
+	 * Returns the content a given attachment. If you want to save the attachment to
+	 * a file, set $saveAs to the destination file name. If $saveAs is left to null,
+	 * the function will return the file data.
+	 * on the
+	 * @link http://context.io/docs/lite/users/email_accounts/folders/messages/attachments#id-get
+	 * @param string $user userID of the mailbox you want to query
+	 * @param string $saveAs Path to local file where the attachment should be saved to.
+	 * @return mixed
+	 */
+	public function getFileContent($user, $params, $saveAs=null) {
+		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
+			throw new InvalidArgumentException('account must be string representing userId');
+		}
+		if (! is_array($params)) {
+			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+		}
+		$params = $this->_filterParams($params, array('label','folder','message_id', 'attachment_id', 'delimiter'), array('label','folder','message_id', 'attachment_id'));
+		if ($params === false) {
+			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+		}
+
+		$email_account = $params['label'];
+		$folder = $params['folder'];
+		$messageId = $params['message_id'];
+		$attachmentId = $params['attachment_id'];
+		unset($params['label']);
+		unset($params['folder']);
+		unset($params['message_id']);
+		unset($params['attachment_id']);
+
+		$consumer = new ContextIOExtLib\OAuthConsumer($this->oauthKey, $this->oauthSecret);
+		$baseUrl = $this->build_url("users/" . $user . "/email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId) . "/attachments/" . urlencode($attachmentId));
+		$req = ContextIOExtLib\OAuthRequest::from_consumer_and_token($consumer, null, "GET", $baseUrl);
+		$sig_method = new ContextIOExtLib\OAuthSignatureMethod_HMAC_SHA1();
+		$req->sign_request($sig_method, $consumer, null);
+
+		//get data using signed url
+		if ($this->authHeaders) {
+			$curl = curl_init($baseUrl);
+			curl_setopt($curl, CURLOPT_HTTPHEADER, array($req->to_header()));
+		}
+		else {
+			$curl = curl_init($req->to_url());
+		}
+
+		if ($this->ssl) {
+			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+		}
+
+		curl_setopt($curl, CURLOPT_USERAGENT, 'ContextIOLibrary/Lite (PHP)');
+
+		if (! is_null($saveAs)) {
+			$fp = fopen($saveAs, "w");
+			curl_setopt($curl, CURLOPT_FILE, $fp);
+			curl_setopt($curl, CURLOPT_HEADER, 0);
+			curl_exec($curl);
+			curl_close($curl);
+			fclose($fp);
+			return true;
+		}
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		$result = curl_exec($curl);
+		if (curl_getinfo($curl, CURLINFO_HTTP_CODE) != 200) {
+			$response = new ContextIOResponse(
+				curl_getinfo($curl, CURLINFO_HTTP_CODE),
+				null,
+				null,
+				curl_getinfo($curl, CURLINFO_CONTENT_TYPE),
+				$result);
+			$this->lastResponse = $response;
+			curl_close($curl);
+			return false;
+		}
+		curl_close($curl);
+		return $result;
+	}
+
+
 	/**
 	 * Returns the message headers of a message.
 	 * @return ContextIOResponse
@@ -195,6 +301,48 @@ class ContextIO {
 		$folder = $params['folder'];
 		$messageId = $params['message_id'];
 		return $this->get($user, "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId) . "/flags");
+	}
+
+	/**
+	 * Marks a message as read
+	 * @return ContextIOResponse
+	 */
+	public function markRead($user, $params) {
+		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
+			throw new InvalidArgumentException('user must be string representing userId');
+		}
+		if (! is_array($params)) {
+			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+		}
+		$params = $this->_filterParams($params, array('label','folder','message_id','raw'), array('label','folder','message_id'));
+		if ($params === false) {
+			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+		}
+		$email_account = $params['label'];
+		$folder = $params['folder'];
+		$messageId = $params['message_id'];
+		return $this->post($user, "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId) . "/read");
+	}
+
+	/**
+	 * Marks a message as unread
+	 * @return ContextIOResponse
+	 */
+	public function markUnread($user, $params) {
+		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
+			throw new InvalidArgumentException('user must be string representing userId');
+		}
+		if (! is_array($params)) {
+			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+		}
+		$params = $this->_filterParams($params, array('label','folder','message_id','raw'), array('label','folder','message_id'));
+		if ($params === false) {
+			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+		}
+		$email_account = $params['label'];
+		$folder = $params['folder'];
+		$messageId = $params['message_id'];
+		return $this->delete($user, "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId) . "/read");
 	}
 
 	/**
