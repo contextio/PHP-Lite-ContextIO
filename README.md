@@ -7,21 +7,24 @@ This repository contains the PHP Client Library for Context.IO. Please consult
 http://context.io for more information regarding Context.IO.
 
 
-REQUIREMENTS
+## Requirements
 
 PHP Curl (http://php.net/curl)
 
+## Install using Github
 
-INSTALLATION
+Copy class.contextio.php, class.contextioresponse.php and OAuth.php into your library
+directory, then ```require_once '/class.contextio.php';``` in your code.
 
-Copy class.contextio.php, class.contextioresponse.php and OAuth.php into the
-same directory.
+## Install using Composer
 
-You only need to include class.contextio.php in your code, other libraries are
-included by class.contextio.php.
+You can install the library by adding it as a dependency to your composer.json.
 
+"require": {
+  "contextio/php-contextio-lite": "dev-master"
+}
 
-EXAMPLES
+## Examples
 
 ```php
 // include the lib
