@@ -1,5 +1,5 @@
 {
-    "name": "contextio/php-lite-contextio",
+    "name": "contextio/php-contextio-lite",
     "description": "PHP Client Library for Context.IO Lite API",
     "keywords": ["contextio", "imap"],
     "homepage": "http://context.io/",
