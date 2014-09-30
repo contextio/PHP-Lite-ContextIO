@@ -1,11 +1,12 @@
-PHP-Lite-ContextIO
-==================
+# Context.IO
 
-The PHP client library for the Lite Context.IO API
+* [API Documentation](http://context.io/docs/lite/)
+* [API Explorer](https://console.context.io/#explore)
+* [Sign Up](http://context.io)
 
-This repository contains the PHP Client Library for Context.IO. Please consult
-http://context.io for more information regarding Context.IO.
+## Description
 
+A PHP Client Library for [Context.IO](http://context.io) Lite. 
 
 ## Requirements
 
