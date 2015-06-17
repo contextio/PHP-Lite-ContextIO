@@ -124,7 +124,7 @@ class ContextIO {
 		$folder = $params['folder'];
 		unset($params['label']);
 		unset($params['folder']);
-		$url = "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages";
+		$url = "email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages";
 		return $this->get($user, $url, $params);
 	}
 
@@ -149,7 +149,7 @@ class ContextIO {
 		unset($params['label']);
 		unset($params['folder']);
 		unset($params['message_id']);
-		return $this->get($user, "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId), $params);
+		return $this->get($user, "email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages/" . rawurlencode($messageId), $params);
 	}
 
 
@@ -175,7 +175,7 @@ class ContextIO {
 		unset($params['label']);
 		unset($params['folder']);
 		unset($params['message_id']);
-		return $this->get($user, "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId) . "/attachments", $params);
+		return $this->get($user, "email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages/" . rawurlencode($messageId) . "/attachments", $params);
 	}
 
 
@@ -211,7 +211,7 @@ class ContextIO {
 		unset($params['attachment_id']);
 
 		$consumer = new ContextIOExtLib\OAuthConsumer($this->oauthKey, $this->oauthSecret);
-		$baseUrl = $this->build_url("users/" . $user . "/email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId) . "/attachments/" . urlencode($attachmentId));
+		$baseUrl = $this->build_url("users/" . $user . "/email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages/" . rawurlencode($messageId) . "/attachments/" . rawurlencode($attachmentId));
 		$req = ContextIOExtLib\OAuthRequest::from_consumer_and_token($consumer, null, "GET", $baseUrl);
 		$sig_method = new ContextIOExtLib\OAuthSignatureMethod_HMAC_SHA1();
 		$req->sign_request($sig_method, $consumer, null);
@@ -279,7 +279,7 @@ class ContextIO {
 		unset($params['label']);
 		unset($params['folder']);
 		unset($params['message_id']);
-		return $this->get($user, "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId) . "/headers", $params);
+		return $this->get($user, "email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages/" . rawurlencode($messageId) . "/headers", $params);
 	}
 
 	/**
@@ -300,7 +300,7 @@ class ContextIO {
 		$email_account = $params['label'];
 		$folder = $params['folder'];
 		$messageId = $params['message_id'];
-		return $this->get($user, "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId) . "/flags");
+		return $this->get($user, "email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages/" . rawurlencode($messageId) . "/flags");
 	}
 
 	/**
@@ -321,7 +321,7 @@ class ContextIO {
 		$email_account = $params['label'];
 		$folder = $params['folder'];
 		$messageId = $params['message_id'];
-		return $this->post($user, "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId) . "/read");
+		return $this->post($user, "email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages/" . rawurlencode($messageId) . "/read");
 	}
 
 	/**
@@ -342,7 +342,7 @@ class ContextIO {
 		$email_account = $params['label'];
 		$folder = $params['folder'];
 		$messageId = $params['message_id'];
-		return $this->delete($user, "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId) . "/read");
+		return $this->delete($user, "email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages/" . rawurlencode($messageId) . "/read");
 	}
 
 	/**
@@ -366,7 +366,7 @@ class ContextIO {
 		unset($params['label']);
 		unset($params['folder']);
 		unset($params['message_id']);
-		return $this->get($user, "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId) . "/body", $params);
+		return $this->get($user, "email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages/" . rawurlencode($messageId) . "/body", $params);
 	}
 
 	/**
@@ -390,7 +390,7 @@ class ContextIO {
 		$email_account = $params['label'];
 		$folder = $params['folder'];
 		$messageId = $params['message_id'];
-		$url = "email_accounts/" . urlencode($email_account) . "/folders/" . urlencode($folder) . "/messages/" . urlencode($messageId) . "/raw";
+		$url = "email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages/" . rawurlencode($messageId) . "/raw";
 
 		$consumer = new ContextIOExtLib\OAuthConsumer($this->oauthKey, $this->oauthSecret);
 		$accessToken = null;
@@ -614,7 +614,7 @@ class ContextIO {
 		if ($params === false) {
 			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
-		return $this->get($user, 'email_accounts/' . urlencode($params['label']) . '/folders/' . urlencode($params['folder']));
+		return $this->get($user, 'email_accounts/' . rawurlencode($params['label']) . '/folders/' . rawurlencode($params['folder']));
 	}
 
 	public function listWebhooks($user) {
@@ -795,7 +795,7 @@ class ContextIO {
 						if ($newParams != '') {
 							$newParams .= '&';
 						}
-						$newParams .= "$key=" . urlencode($value);
+						$newParams .= "$key=" . rawurlencode($value);
 					}
 					else {
 						unset($signatureParams[$key]);
@@ -804,7 +804,7 @@ class ContextIO {
 							if ($newParams != '') {
 								$newParams .= '&';
 							}
-							$newParams .= $key . '[]=' . urlencode($currentValue);
+							$newParams .= $key . '[]=' . rawurlencode($currentValue);
 						}
 					}
 				}
@@ -864,7 +864,7 @@ class ContextIO {
 					if (is_string($parameters)) {
 						$httpHeadersToSet[] = 'Content-Length: ' . strlen($parameters);
 					}
-					curl_setopt($curl, CURLOPT_POSTFIELDS, $parameters); 
+					curl_setopt($curl, CURLOPT_POSTFIELDS, $parameters);
 				}
 			}
 		}
