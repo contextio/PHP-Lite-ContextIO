@@ -152,6 +152,29 @@ class ContextIO {
 		return $this->get($user, "email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages/" . rawurlencode($messageId), $params);
 	}
 
+	/**
+	 * Move a message to a different folder.
+	 * @return ContextIOResponse
+	 */
+	public function moveMessage($user, $params) {
+		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
+			throw new InvalidArgumentException('user must be string representing userId');
+		}
+		if (! is_array($params)) {
+			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+		}
+		$params = $this->_filterParams($params, array('delimiter'), array('label','folder','message_id','new_folder_id'));
+		if ($params === false) {
+			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+		}
+		$email_account = $params['label'];
+		$folder = $params['folder'];
+		$messageId = $params['message_id'];
+		unset($params['label']);
+		unset($params['folder']);
+		unset($params['message_id']);
+		return $this->put($user, "email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages/" . rawurlencode($messageId), $params);
+	}
 
 	/**
 	 * Returns a list of files
