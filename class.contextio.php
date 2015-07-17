@@ -163,7 +163,7 @@ class ContextIO {
 		if (! is_array($params)) {
 			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
-		$params = $this->_filterParams($params, array('delimiter'), array('label','folder','message_id','new_folder_id'));
+		$params = $this->_filterParams($params, array('label','folder','message_id','new_folder_id','delimiter'), array('label','folder','message_id','new_folder_id'));
 		if ($params === false) {
 			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
