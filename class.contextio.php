@@ -170,10 +170,11 @@ class ContextIO {
 		$email_account = $params['label'];
 		$folder = $params['folder'];
 		$messageId = $params['message_id'];
+		$newFolder = $params['new_folder_id'];
 		unset($params['label']);
 		unset($params['folder']);
 		unset($params['message_id']);
-		return $this->put($user, "email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages/" . rawurlencode($messageId), $params, array('Content-Type: application/json'));
+		return $this->put($user, "email_accounts/" . rawurlencode($email_account) . "/folders/" . rawurlencode($folder) . "/messages/" . rawurlencode($messageId) . '?new_folder_id=' . rawurlencode($newFolder));
 	}
 
 	/**
@@ -808,7 +809,7 @@ class ContextIO {
 			$signatureParams = array();
 		}
 		if (($httpMethod != 'GET') && is_array($parameters)) {
-			if (!in_array('Content-Type: application/x-www-form-urlencoded', $httpHeadersToSet) && !in_array('Content-Type: application/json', $httpHeadersToSet)) {
+			if (!in_array('Content-Type: application/x-www-form-urlencoded', $httpHeadersToSet)) {
 				$signatureParams = array();
 			}
 			else {
