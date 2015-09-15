@@ -571,7 +571,7 @@ class ContextIO {
 				throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 			}
 		}
-		return $this->get($user, 'email_accounts/' . $params['label']);
+		return $this->get($user, 'email_accounts/' . rawurlencode($params['label']));
 	}
 
 	/**
@@ -627,7 +627,7 @@ class ContextIO {
 		}
 		$email_account = $params['label'];
 		unset($params['label']);
-		return $this->get($user, 'email_accounts/' . $email_account . '/folders', $params);
+		return $this->get($user, 'email_accounts/' . rawurlencode($email_account) . '/folders', $params);
 	}
 
 	public function getEmailAccountFolder($user, $params=array()) {
@@ -661,7 +661,7 @@ class ContextIO {
 				throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 			}
 		}
-		return $this->get($user, 'webhooks/' . $params['webhook_id']);
+		return $this->get($user, 'webhooks/' . rawurlencode($params['webhook_id']));
 	}
 
 	public function addWebhook($user, $params) {
