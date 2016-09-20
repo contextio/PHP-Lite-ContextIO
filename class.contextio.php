@@ -468,7 +468,7 @@ class ContextIO {
 	}
 
 	public function addUser($params) {
-		$params = $this->_filterParams($params, array('email','first_name','last_name','type','server','username','provider_consumer_key','provider_refresh_token','password','use_ssl','port','migrate_account_id'), array('email'));
+		$params = $this->_filterParams($params, array('email','first_name','last_name','type','server','username','provider_consumer_key','provider_refresh_token','password','use_ssl','port','migrate_account_id', 'status_callback_url'), array('email'));
 		if ($params === false) {
 			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
@@ -519,7 +519,7 @@ class ContextIO {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
 		}
-		$params = $this->_filterParams($params, array('provider_token', 'provider_token_secret', 'provider_refresh_token', 'password', 'provider_consumer_key', 'status', 'force_status_check'), array('label'));
+		$params = $this->_filterParams($params, array('provider_token', 'provider_token_secret', 'provider_refresh_token', 'password', 'provider_consumer_key', 'status', 'force_status_check', 'status_callback_url'), array('label'));
 		if ($params === false) {
 			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
