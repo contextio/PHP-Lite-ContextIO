@@ -26,34 +26,63 @@ THE SOFTWARE.
  * @copyright Copyright (C) 2011 DokDok Inc.
  * @licence http://opensource.org/licenses/mit-license MIT Licence
  */
-
 class ContextIOResponse {
 
+	/** @var array[] */
 	protected $headers;
+
+	/** @var array|false  */
 	protected $rawResponseHeaders;
+
+	/** @var array|false  */
 	protected $rawRequestHeaders;
+
+	/** @var  string */
 	protected $rawResponse;
+
+	/** @var array */
 	protected $decodedResponse;
+
+	/** @var int  */
 	protected $httpCode;
+
+	/** @var string */
 	protected $contentType;
+
+	/** @var bool */
 	protected $hasError;
 
-	function __construct($httpCode, $requestHeaders, $responseHeaders, $contentType, $rawResponse, $acceptableContentTypes=array('application/json')) {
+
+	/**
+	 * ContextIOResponse constructor.
+	 *
+	 * @param int           $httpCode
+	 * @param array|null $requestHeaders
+	 * @param array|null $responseHeaders
+	 * @param string        $contentType
+	 * @param string        $rawResponse
+	 * @param array         $acceptableContentTypes
+	 */
+	function __construct($httpCode, $requestHeaders, $responseHeaders, $contentType, $rawResponse, array $acceptableContentTypes=array('application/json')) {
 		$this->httpCode = (int)$httpCode;
 		$this->contentType = $contentType;
 		$this->rawResponse = $rawResponse;
 		$this->rawResponseHeaders = (is_array($responseHeaders)) ? $responseHeaders : false;
 		$this->rawRequestHeaders = (is_array($requestHeaders)) ? $requestHeaders : false;
 		$this->hasError = false;
-		$this->headers = array('request'=>$requestHeaders, 'response'=>null); 
+		$this->headers = array('request'=>$requestHeaders, 'response'=>null);
 		$this->_decodeResponse($acceptableContentTypes);
 		$this->_parseHeaders('response');
 		$this->_parseHeaders('request');
 	}
-	
+
+	/**
+	 *
+	 * @param string $which
+	 */
 	private function _parseHeaders($which = 'response') {
 		$raw = ($which == 'response') ? $this->rawResponseHeaders : $this->rawRequestHeaders;
-		
+
 		if ($raw !== false) {
 			$headers = array();
 			$headers[($which == 'response') ? 'Status-Line' : 'Request-Line'] = trim(array_shift($raw));
@@ -99,7 +128,11 @@ class ContextIOResponse {
 		}
 	}
 
-	private function _decodeResponse($acceptableContentTypes) {
+	/**
+	 *
+	 * @param string[] $acceptableContentTypes
+	 */
+	private function _decodeResponse(array $acceptableContentTypes) {
 		if (! (($this->httpCode >= 200) && ($this->httpCode < 400))) {
 			$this->hasError = true;
 		}
@@ -112,26 +145,50 @@ class ContextIOResponse {
 		}
 	}
 
+	/**
+	 *
+	 * @return string
+	 */
 	public function getRawResponse() {
 		return $this->rawResponse;
 	}
 
+	/**
+	 *
+	 * @return array|false
+	 */
 	public function getRawResponseHeaders() {
 		return $this->rawResponseHeaders;
 	}
 
+	/**
+	 *
+	 * @return array|null
+	 */
 	public function getResponseHeaders() {
 		return $this->headers['response'];
 	}
 
+	/**
+	 *
+	 * @return array|false
+	 */
 	public function getRawRequestHeaders() {
 		return $this->rawRequestHeaders;
 	}
-	
+
+	/**
+	 *
+	 * @return array
+	 */
 	public function getRequestHeaders() {
 		return $this->headers['request'];
 	}
-	
+
+	/**
+	 *
+	 * @return int
+	 */
 	public function getHttpCode() {
 		return $this->httpCode;
 	}
@@ -139,6 +196,8 @@ class ContextIOResponse {
 	/**
 	 * Returns the response body parsed into a PHP structure. To get the JSON
 	 * string, use getRawResponse()
+	 *
+	 * @return array
 	 */
 	public function getData() {
 		return $this->decodedResponse;
@@ -157,6 +216,10 @@ class ContextIOResponse {
 	 *  $response = $ContextIO->getMessage($accountId, array("message_id"=>"1234abcd"));
 	 * 	$firstRecipientEmail = $response->getDataProperty("addresses.to.0.email");
 	 * </code>
+	 *
+	 * @param string $propertyName
+	 *
+	 * @return mixed|null
 	 */
 	public function getDataProperty($propertyName) {
 		$props = explode(".", $propertyName);
@@ -168,6 +231,9 @@ class ContextIOResponse {
 		return $value;
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function hasError() {
 		return $this->hasError;
 	}
