@@ -28,7 +28,7 @@ THE SOFTWARE.
  */
 class ContextIOResponse {
 
-	/** @var array[] */
+	/** @var array */
 	protected $headers;
 
 	/** @var array|false  */
