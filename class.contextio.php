@@ -11,17 +11,40 @@ require_once dirname(__FILE__) . '/OAuth.php';
  */
 class ContextIO {
 
+	/** @var array  */
 	protected $responseHeaders;
+
+	/** @var array */
 	protected $requestHeaders;
+
+	/** @var string  */
 	protected $oauthKey;
+
+	/** @var string  */
 	protected $oauthSecret;
+
+	/** @var string|null  */
 	protected $accessToken;
+
+	/** @var string|null  */
 	protected $accessTokenSecret;
+
+	/** @var bool  */
 	protected $saveHeaders;
+
+	/** @var bool  */
 	protected $ssl;
+
+	/** @var string  */
 	protected $endPoint;
+
+	/** @var string  */
 	protected $apiVersion;
+
+	/** @var null|ContextIOResponse  */
 	protected $lastResponse;
+
+	/** @var bool  */
 	protected $authHeaders;
 
 	/** @var array  cURL options */
@@ -31,10 +54,10 @@ class ContextIO {
 	 * Instantiate a new ContextIO object. Your OAuth consumer key and secret can be
 	 * found under the "settings" tab of the developer console (https://console.context.io/#settings)
 	 *
-	 * @param string    $key                    Your Context.IO OAuth consumer key
-	 * @param string    $secret                 Your Context.IO OAuth consumer secret
-	 * @param           $access_token
-	 * @param           $access_token_secret
+	 * @param string        $key                    Your Context.IO OAuth consumer key
+	 * @param string        $secret                 Your Context.IO OAuth consumer secret
+	 * @param string|null   $access_token
+	 * @param string|null   $access_token_secret
 	 * @param array     $curlOptions            cURL options; assoc array: option => value
 	 */
 	function __construct($key, $secret, $access_token=null, $access_token_secret=null, array $curlOptions=array()) {
@@ -53,8 +76,11 @@ class ContextIO {
 
 	/**
 	 * Attempts to discover IMAP settings for a given email address
-	 * @param mixed $params either a string or assoc array
-	 *    with email as its key
+	 *
+	 * @param string|array  $params     either a string or assoc array with "email" as its key
+	 *
+	 * @throws InvalidArgumentException
+	 *
 	 * @return ContextIOResponse
 	 */
 	public function discovery($params) {
@@ -70,10 +96,23 @@ class ContextIO {
 		return $this->get(null, 'discovery?source_type=imap&email=' . $params['email']);
 	}
 
+	/**
+	 * @param string[]|string|null $user
+	 *
+	 * @return ContextIOResponse|ContextIOResponse[]|false
+	 */
 	public function listConnectTokens($user=null) {
 		return $this->get($user, 'connect_tokens');
 	}
 
+	/**
+	 *
+	 * @param string|array  $params     either a string or assoc array with "token" as its key
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
 	public function getConnectToken($params) {
 		if (is_string($params)) {
 			$params = array('token' => $params);
@@ -88,7 +127,17 @@ class ContextIO {
 		return $this->get($user, 'connect_tokens/' . $params['token']);
 	}
 
-	public function addConnectToken($params=array()) {
+	/**
+	 *
+	 *
+	 * @param array $params     required keys: 'callback_url' <br />
+	 *                          possible keys: 'service_level', 'email', 'callback_url', 'first_name', 'last_name', 'source_raw_file_list'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return bool|ContextIOResponse
+	 */
+	public function addConnectToken(array $params) {
 		$params = $this->_filterParams($params, array('service_level','email','callback_url','first_name','last_name','source_raw_file_list'), array('callback_url'));
 		if ($params === false) {
 			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
@@ -97,6 +146,12 @@ class ContextIO {
 		return $this->post($user, 'connect_tokens', $params, null, array('Content-Type: application/x-www-form-urlencoded'));
 	}
 
+	/**
+	 *
+	 * @param string|array  $params     either a string or assoc array with "token" as its key
+	 *
+	 * @return ContextIOResponse|false
+	 */
 	public function deleteConnectToken($params) {
 		if (is_string($params)) {
 			$params = array('token' => $params);
@@ -113,16 +168,19 @@ class ContextIO {
 
 	/**
 	 * Returns message information
-	 * @param string $user userID of the mailbox you want to query
-	 * @param array[string]mixed $params Query parameters for the API call: 'subject', 'limit'
-	 * @return ContextIOResponse
+	 *
+	 * @param string    $user       userID of the mailbox you want to query
+	 * @param array $params         Query parameters for the API call <br />
+	 *                              required keys: 'label', 'folder' <br />
+	 *                              possible keys: 'label', 'folder', 'limit', 'offset', 'include_body', 'include_headers', 'include_flags', 'body_type'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
 	 */
-	public function listMessages($user, $params=null) {
+	public function listMessages($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('account must be string representing userId');
-		}
-		if (! is_array($params)) {
-			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
 		$params = $this->_filterParams($params, array('label','folder','limit','offset','include_body','include_headers','include_flags','body_type'), array('label','folder'));
 		if ($params === false) {
@@ -138,14 +196,19 @@ class ContextIO {
 
 	/**
 	 * Returns document and contact information about a message.
-	 * @return ContextIOResponse
+	 *
+	 * @param string    $user
+	 * @param array     $params     Query parameters for the API call <br />
+	 *                              required keys: 'label','folder','message_id'
+	 *                              possible keys: 'label', 'folder', 'message_id', 'include_body', 'include_headers', 'include_flags', 'body_type'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
 	 */
-	public function getMessage($user, $params) {
+	public function getMessage($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
-		}
-		if (! is_array($params)) {
-			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
 		$params = $this->_filterParams($params, array('label','folder','message_id','include_body','include_headers','include_flags','body_type'), array('label','folder','message_id'));
 		if ($params === false) {
@@ -162,14 +225,19 @@ class ContextIO {
 
 	/**
 	 * Move a message to a different folder.
-	 * @return ContextIOResponse
+	 *
+	 * @param string    $user
+	 * @param array     $params     Query parameters for the API call <br />
+	 *                              required keys: 'label', 'folder','message_id', 'new_folder_id' <br />
+	 *                              possible keys: 'label', 'folder', 'message_id', 'new_folder_id', 'delimiter'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
 	 */
-	public function moveMessage($user, $params) {
+	public function moveMessage($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
-		}
-		if (! is_array($params)) {
-			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
 		$params = $this->_filterParams($params, array('label','folder','message_id','new_folder_id','delimiter'), array('label','folder','message_id','new_folder_id'));
 		if ($params === false) {
@@ -187,15 +255,19 @@ class ContextIO {
 
 	/**
 	 * Returns a list of files
-	 * @param string $delimiter custom hierarchy delimiter
-	 * @return ContextIOResponse
+	 *
+	 * @param string    $user
+	 * @param array     $params     Query parameters for the API call <br />
+	 *                              required keys: 'label', 'folder', 'message_id' <br />
+	 *                              possible keys: 'label', 'folder', 'message_id', 'delimiter'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
 	 */
-	public function listFiles($user, $params=null) {
+	public function listFiles($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('account must be string representing userId');
-		}
-		if (! is_array($params)) {
-			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
 		$params = $this->_filterParams($params, array('label','folder','message_id', 'delimiter'), array('label','folder','message_id'));
 		if ($params === false) {
@@ -215,18 +287,22 @@ class ContextIO {
 	 * Returns the content a given attachment. If you want to save the attachment to
 	 * a file, set $saveAs to the destination file name. If $saveAs is left to null,
 	 * the function will return the file data.
-	 * on the
+	 *
 	 * @link http://context.io/docs/lite/users/email_accounts/folders/messages/attachments#id-get
-	 * @param string $user userID of the mailbox you want to query
-	 * @param string $saveAs Path to local file where the attachment should be saved to.
-	 * @return mixed
+	 *
+	 * @param string        $user       userID of the mailbox you want to query
+	 * @param array $params             Query parameters for the API call <br />
+	 *                                  required keys: 'label','folder','message_id', 'attachment_id' <br />
+	 *                                  possible keys: 'label','folder','message_id', 'attachment_id', 'delimiter'
+	 * @param string|null   $saveAs     Path to local file where the attachment should be saved to.
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return bool|string
 	 */
-	public function getFileContent($user, $params, $saveAs=null) {
+	public function getFileContent($user, array $params, $saveAs=null) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('account must be string representing userId');
-		}
-		if (! is_array($params)) {
-			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
 		$params = $this->_filterParams($params, array('label','folder','message_id', 'attachment_id', 'delimiter'), array('label','folder','message_id', 'attachment_id'));
 		if ($params === false) {
@@ -273,7 +349,7 @@ class ContextIO {
 			return true;
 		}
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-		$result = curl_exec($curl);
+		$result = curl_exec($curl); // CURLOPT_RETURNTRANSFER is set to 1 -> will return a string
 		if (curl_getinfo($curl, CURLINFO_HTTP_CODE) != 200) {
 			$response = new ContextIOResponse(
 				curl_getinfo($curl, CURLINFO_HTTP_CODE),
@@ -292,14 +368,19 @@ class ContextIO {
 
 	/**
 	 * Returns the message headers of a message.
-	 * @return ContextIOResponse
+	 *
+	 * @param string    $user
+	 * @param array     $params     Query parameters for the API call <br />
+	 *                              required keys: 'label', 'folder', 'message_id' <br />
+	 *                              possible keys: 'label', 'folder', 'message_id', 'raw', 'delimiter'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
 	 */
-	public function getMessageHeaders($user, $params) {
+	public function getMessageHeaders($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
-		}
-		if (! is_array($params)) {
-			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
 		$params = $this->_filterParams($params, array('label','folder','message_id','raw', 'delimiter'), array('label','folder','message_id'));
 		if ($params === false) {
@@ -316,14 +397,19 @@ class ContextIO {
 
 	/**
 	 * Returns the message flags of a message.
-	 * @return ContextIOResponse
+	 *
+	 * @param string    $user
+	 * @param array     $params     Query parameters for the API call <br />
+	 *                              required keys: 'label', 'folder', 'message_id' <br />
+	 *                              possible keys: 'label', 'folder', 'message_id', 'raw'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
 	 */
-	public function getMessageFlags($user, $params) {
+	public function getMessageFlags($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
-		}
-		if (! is_array($params)) {
-			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
 		$params = $this->_filterParams($params, array('label','folder','message_id','raw'), array('label','folder','message_id'));
 		if ($params === false) {
@@ -337,14 +423,19 @@ class ContextIO {
 
 	/**
 	 * Marks a message as read
-	 * @return ContextIOResponse
+	 *
+	 * @param string $user
+	 * @param array  $params    Query parameters for the API call <br />
+	 *                          required keys: 'label', 'folder', 'message_id' <br />
+	 *                          possible keys: 'label', 'folder', 'message_id', 'raw'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
 	 */
-	public function markRead($user, $params) {
+	public function markRead($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
-		}
-		if (! is_array($params)) {
-			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
 		$params = $this->_filterParams($params, array('label','folder','message_id','raw'), array('label','folder','message_id'));
 		if ($params === false) {
@@ -358,14 +449,19 @@ class ContextIO {
 
 	/**
 	 * Marks a message as unread
-	 * @return ContextIOResponse
+	 *
+	 * @param string    $user
+	 * @param array     $params     Query parameters for the API call <br />
+	 *                              required keys: 'label', 'folder', 'message_id' <br />
+	 *                              possible keys: 'label', 'folder', 'message_id', 'raw'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
 	 */
-	public function markUnread($user, $params) {
+	public function markUnread($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
-		}
-		if (! is_array($params)) {
-			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
 		$params = $this->_filterParams($params, array('label','folder','message_id','raw'), array('label','folder','message_id'));
 		if ($params === false) {
@@ -379,14 +475,19 @@ class ContextIO {
 
 	/**
 	 * Returns the message body (excluding attachments) of a message.
-	 * @return ContextIOResponse
+	 *
+	 * @param string    $user
+	 * @param array     $params     Query parameters for the API call <br />
+	 *                              required keys: 'label', 'folder', 'message_id' <br />
+	 *                              possible keys: 'label', 'folder', 'message_id', 'type', 'delimiter'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
 	 */
-	public function getMessageBody($user, $params) {
+	public function getMessageBody($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
-		}
-		if (! is_array($params)) {
-			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
 		$params = $this->_filterParams($params, array('label','folder','message_id','type', 'delimiter'), array('label','folder','message_id'));
 		if ($params === false) {
@@ -404,16 +505,19 @@ class ContextIO {
 	/**
 	 * Returns the message raw source of a message.
 	 * A message can be identified by the value of its Message-ID header
-	 * @param string $user userID of the mailbox you want to query
-	 * @param array[string]mixed $params Query parameters for the API call: 'emailMessageId'
-	 * @return ContextIOResponse
+	 *
+	 * @param string        $user       userID of the mailbox you want to query
+	 * @param array         $params     Query parameters for the API call: <br />
+	 *                                  required parameters: 'label','folder','message_id'
+	 * @param string|null   $saveAs     Path to local file where the attachment should be saved to.
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
 	 */
-	public function getMessageRaw($user, $params, $saveAs=null) {
+	public function getMessageRaw($user, array $params, $saveAs=null) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
-		}
-		if (! is_array($params)) {
-			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
 		$params = $this->_filterParams($params, array('label','folder','message_id'), array('label','folder','message_id'));
 		if ($params === false) {
@@ -475,7 +579,17 @@ class ContextIO {
 		return $result;
 	}
 
-	public function addUser($params) {
+	/**
+	 *
+	 * @param array $params     Query parameters for the API call <br />
+	 *                          required keys: 'email' <br/>
+	 *                          possible keys: 'email', 'first_name', 'last_name', 'type', 'server', 'username', 'provider_consumer_key', 'provider_refresh_token', 'password', 'use_ssl', 'port', 'migrate_account_id', 'status_callback_url'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
+	public function addUser(array $params) {
 		$params = $this->_filterParams($params, array('email','first_name','last_name','type','server','username','provider_consumer_key','provider_refresh_token','password','use_ssl','port','migrate_account_id', 'status_callback_url'), array('email'));
 		if ($params === false) {
 			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
@@ -483,7 +597,17 @@ class ContextIO {
 		return $this->post(null, 'users', $params);
 	}
 
-	public function modifyUser($user, $params) {
+	/**
+	 *
+	 * @param string    $user
+	 * @param array     $params     Query parameters for the API call <br />
+	 *                              possible keys: 'first_name', 'last_name'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
+	public function modifyUser($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
 		}
@@ -494,6 +618,14 @@ class ContextIO {
 		return $this->post($user, '', $params);
 	}
 
+	/**
+	 *
+	 * @param string $user
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
 	public function getUser($user) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
@@ -501,6 +633,14 @@ class ContextIO {
 		return $this->get($user);
 	}
 
+	/**
+	 *
+	 * @param string $user
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
 	public function deleteUser($user) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
@@ -508,7 +648,16 @@ class ContextIO {
 		return $this->delete($user);
 	}
 
-	public function listUsers($params=null) {
+	/**
+	 *
+	 * @param array|null $params    Query parameters for the API call <br />
+	 *                              possible keys: 'limit','offset','email','status_ok','status'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
+	public function listUsers(array $params=null) {
 		if (is_array($params)) {
 			$params = $this->_filterParams($params, array('limit','offset','email','status_ok','status'));
 			if ($params === false) {
@@ -520,20 +669,34 @@ class ContextIO {
 
 	/**
 	 * Modify the IMAP server settings of an already indexed account
-	 * @param array[string]string $params Query parameters for the API call: 'credentials', 'mailboxes'
-	 * @return ContextIOResponse
+	 *
+	 * @param string    $user
+	 * @param array     $params     Query parameters for the API call <br />
+	 *                              required keys: 'label' <br />
+	 *                              possible keys 'label', 'provider_token', 'provider_token_secret', 'provider_refresh_token', 'password', 'provider_consumer_key', 'status', 'force_status_check', 'status_callback_url'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
 	 */
-	public function modifyEmailAccount($user, $params) {
+	public function modifyEmailAccount($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
 		}
-		$params = $this->_filterParams($params, array('provider_token', 'provider_token_secret', 'provider_refresh_token', 'password', 'provider_consumer_key', 'status', 'force_status_check', 'status_callback_url'), array('label'));
+		$params = $this->_filterParams($params, array('label', 'provider_token', 'provider_token_secret', 'provider_refresh_token', 'password', 'provider_consumer_key', 'status', 'force_status_check', 'status_callback_url'), array('label'));
 		if ($params === false) {
 			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
 		return $this->post($user, 'email_accounts/' . $params['label'], $params);
 	}
 
+	/**
+	 * @param string        $user
+	 * @param string|array  $params     either a string or assoc array with "label" as its key
+	 * @param bool          $force
+	 *
+	 * @return ContextIOResponse|false
+	 */
 	public function resetSourceStatus($user, $params, $force=false) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
@@ -553,7 +716,17 @@ class ContextIO {
 		return $this->post($user, 'email_accounts/' . $params['label'], array('status' => 1));
 	}
 
-	public function listEmailAccounts($user, $params=null) {
+	/**
+	 *
+	 * @param string        $user
+	 * @param array|null    $params     Query parameters for the API call <br />
+	 *                                  required keys: 'status_ok','status'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
+	public function listEmailAccounts($user, array $params=null) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
 		}
@@ -566,6 +739,15 @@ class ContextIO {
 		return $this->get($user, 'email_accounts', $params);
 	}
 
+	/**
+	 *
+	 * @param string        $user
+	 * @param string|array  $params      either a string or assoc array with "label" as its key
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
 	public function getEmailAccount($user, $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
@@ -583,10 +765,17 @@ class ContextIO {
 	}
 
 	/**
-	 * @param array[string]string $params Query parameters for the API call: 'email', 'server', 'username', 'password', 'oauthconsumername', 'oauthtoken', 'oauthtokensecret', 'usessl', 'port'
-	 * @return ContextIOResponse
+	 *
+	 * @param string    $user
+	 * @param array     $params   Query parameters for the API call <br />
+	 *                            required keys: 'server', 'username'<br />
+	 *                            possible keys: 'type', 'email', 'server', 'username', 'provider_consumer_key', 'provider_token', 'provider_token_secret', 'provider_refresh_token', 'raw_file_list', 'password', 'use_ssl', 'port'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
 	 */
-	public function addEmailAccount($user, $params) {
+	public function addEmailAccount($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
 		}
@@ -602,9 +791,15 @@ class ContextIO {
 
 	/**
 	 * Remove the connection to an IMAP account
-	 * @return ContextIOResponse
+	 *
+	 * @param string        $user
+	 * @param string|array  $params     either a string or assoc array with "label" as its key
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
 	 */
-	public function deleteEmailAccount($user, $params=array()) {
+	public function deleteEmailAccount($user, $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
 		}
@@ -620,7 +815,16 @@ class ContextIO {
 		return $this->delete($user, 'email_accounts/' . $params['label']);
 	}
 
-	public function listEmailAccountFolders($user, $params=array()) {
+	/**
+	 *
+	 * @param string        $user
+	 * @param string|array  $params     either a string or assoc array with "label" as its key
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
+	public function listEmailAccountFolders($user, $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
 		}
@@ -638,7 +842,17 @@ class ContextIO {
 		return $this->get($user, 'email_accounts/' . rawurlencode($email_account) . '/folders', $params);
 	}
 
-	public function getEmailAccountFolder($user, $params=array()) {
+	/**
+	 *
+	 * @param string    $user
+	 * @param array     $params     Query parameters for the API call <br />
+	 *                              required keys: 'label', 'folder'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
+	public function getEmailAccountFolder($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
 		}
@@ -649,6 +863,14 @@ class ContextIO {
 		return $this->get($user, 'email_accounts/' . rawurlencode($params['label']) . '/folders/' . rawurlencode($params['folder']));
 	}
 
+	/**
+	 *
+	 * @param string $user
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
 	public function listWebhooks($user) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
@@ -656,6 +878,13 @@ class ContextIO {
 		return $this->get($user, 'webhooks');
 	}
 
+	/**
+	 *
+	 * @param string        $user
+	 * @param array|string  $params     either a string or assoc array with "webhook_id" as its key
+	 *
+	 * @return ContextIOResponse|false
+	 */
 	public function getWebhook($user, $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
@@ -672,7 +901,18 @@ class ContextIO {
 		return $this->get($user, 'webhooks/' . rawurlencode($params['webhook_id']));
 	}
 
-	public function addWebhook($user, $params) {
+	/**
+	 *
+	 * @param string    $user
+	 * @param array     $params     Query parameters for the API call <br />
+	 *                              required keys: 'callback_url', 'failure_notif_url' <br />
+	 *                              possible keys: 'filter_to', 'filter_from', 'filter_cc', 'filter_subject', 'filter_thread', 'filter_new_important', 'filter_file_name', 'filter_file_revisions', 'sync_period', 'callback_url', 'failure_notif_url','filter_folder_added', 'filter_folder_removed', 'filter_to_domain', 'filter_from_domain'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
+	public function addWebhook($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
 		}
@@ -683,6 +923,15 @@ class ContextIO {
 		return $this->post($user, 'webhooks/', $params);
 	}
 
+	/**
+	 *
+	 * @param string        $user
+	 * @param array|string  $params     either a string or assoc array with "webhook_id" as its key
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
 	public function deleteWebhook($user, $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
@@ -699,7 +948,17 @@ class ContextIO {
 		return $this->delete($user, 'webhooks/' . $params['webhook_id']);
 	}
 
-	public function modifyWebhook($user, $params) {
+	/**
+	 *
+	 * @param string    $user
+	 * @param array     $params     Query parameters for the API call <br />
+	 *                              required keys: 'webhook_id', 'active'
+	 *
+	 * @throws InvalidArgumentException
+	 *
+	 * @return ContextIOResponse|false
+	 */
+	public function modifyWebhook($user, array $params) {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
 		}
@@ -712,8 +971,10 @@ class ContextIO {
 
 	/**
 	 * Specify the API endpoint.
+	 *
 	 * @param string $endPoint
-	 * @return boolean success
+	 *
+	 * @return bool     success
 	 */
 	public function setEndPoint($endPoint) {
 		$this->endPoint = $endPoint;
@@ -723,7 +984,8 @@ class ContextIO {
 	/**
 	 * Specify whether or not API calls should be made over a secure connection.
 	 * HTTPS is used on all calls by default.
-	 * @param bool $sslOn Set to false to make calls over HTTP, true to use HTTPS
+	 *
+	 * @param bool $sslOn   Set to false to make calls over HTTP, true to use HTTPS
 	 */
 	public function setSSL($sslOn=true) {
 		$this->ssl = (is_bool($sslOn)) ? $sslOn : true;
@@ -732,7 +994,8 @@ class ContextIO {
 	/**
 	 * Specify whether OAuth parameters should be included as URL query parameters
 	 * or sent as HTTP Authorization headers. The default is URL query parameters.
-	 * @param bool $authHeadersOn Set to true to use HTTP Authorization headers, false to use URL query params
+	 *
+	 * @param bool $authHeadersOn   Set to true to use HTTP Authorization headers, false to use URL query params
 	 */
 	public function useAuthorizationHeaders($authHeadersOn = true) {
 		$this->authHeaders = (is_bool($authHeadersOn)) ? $authHeadersOn : true;
@@ -740,13 +1003,18 @@ class ContextIO {
 
 	/**
 	 * Returns the ContextIOResponse object for the last API call.
-	 * @return ContextIOResponse
+	 *
+	 * @return ContextIOResponse|null
 	 */
 	public function getLastResponse() {
 		return $this->lastResponse;
 	}
 
 
+	/**
+	 *
+	 * @return string
+	 */
 	protected function build_baseurl() {
 		$url = 'http';
 		if ($this->ssl) {
@@ -755,15 +1023,34 @@ class ContextIO {
 		return "$url://" . $this->endPoint . "/" . $this->apiVersion . '/';
 	}
 
+	/**
+	 *
+	 * @param string $action
+	 *
+	 * @return string
+	 */
 	protected function build_url($action) {
 		return $this->build_baseurl() . $action;
 	}
 
+	/**
+	 *
+	 * @param bool $yes
+	 */
 	public function saveHeaders($yes=true) {
 		$this->saveHeaders = $yes;
 	}
 
-	protected function get($user, $action='', $parameters=null, $acceptableContentTypes=null) {
+	/**
+	 *
+	 * @param string[]|string|null  $user
+	 * @param string                $action
+	 * @param string|array|null     $parameters
+	 * @param array|null            $acceptableContentTypes
+	 *
+	 * @return ContextIOResponse[]|ContextIOResponse|false
+	 */
+	protected function get($user, $action='', $parameters=null, array $acceptableContentTypes=null) {
 		if (is_array($user)) {
 			$tmp_results = array();
 			foreach ($user as $usr) {
@@ -780,19 +1067,58 @@ class ContextIO {
 		}
 	}
 
-	protected function put($user, $action, $parameters=null, $httpHeadersToSet=array()) {
+	/**
+	 *
+	 * @param string            $user
+	 * @param string            $action
+	 * @param string|array|null $parameters
+	 * @param array             $httpHeadersToSet
+	 *
+	 * @return ContextIOResponse|false
+	 */
+	protected function put($user, $action, $parameters=null, array $httpHeadersToSet=array()) {
 		return $this->_doCall('PUT', $user, $action, $parameters, null, null, $httpHeadersToSet);
 	}
 
+	/**
+	 *
+	 * @param string            $user
+	 * @param string            $action
+	 * @param string|array|null $parameters
+	 * @param array|null        $file
+	 * @param array             $httpHeadersToSet
+	 *
+	 * @return ContextIOResponse|false
+	 */
 	protected function post($user, $action='', $parameters=null, $file=null, $httpHeadersToSet=array()) {
 		return $this->_doCall('POST', $user, $action, $parameters, $file, null, $httpHeadersToSet);
 	}
 
+	/**
+	 *
+	 * @param string            $user
+	 * @param string            $action
+	 * @param string|array|null $parameters
+	 *
+	 * @return ContextIOResponse|false
+	 */
 	protected function delete($user, $action='', $parameters=null) {
 		return $this->_doCall('DELETE', $user, $action, $parameters);
 	}
 
-	protected function _doCall($httpMethod, $user, $action, $parameters=null, $file=null, $acceptableContentTypes=null, $httpHeadersToSet=array()) {
+	/**
+	 *
+	 * @param string            $httpMethod
+	 * @param string|null       $user
+	 * @param string            $action
+	 * @param string|array|null $parameters
+	 * @param array|null        $file                       possible keys: "field" , "filename"
+	 * @param string[]|null     $acceptableContentTypes
+	 * @param array             $httpHeadersToSet
+	 *
+	 * @return ContextIOResponse|false
+	 */
+	protected function _doCall($httpMethod, $user, $action, $parameters=null, array $file=null, array $acceptableContentTypes=null, array $httpHeadersToSet=array()) {
 		$consumer = new ContextIOExtLib\OAuthConsumer($this->oauthKey, $this->oauthSecret);
 		$accessToken = null;
 		if (! is_null($user)) {
@@ -943,12 +1269,27 @@ class ContextIO {
 		return $response;
 	}
 
+
+	/**
+	 * @param           $curl
+	 * @param string    $headers
+	 *
+	 * @return int
+	 */
 	public function _setHeader($curl,$headers) {
 		$this->responseHeaders[] = trim($headers,"\n\r");
 		return strlen($headers);
 	}
 
-	protected function _filterParams($givenParams, $validParams, $requiredParams=array()) {
+	/**
+	 *
+	 * @param array     $givenParams
+	 * @param string[]  $validParams
+	 * @param string[]  $requiredParams
+	 *
+	 * @return array|false
+	 */
+	protected function _filterParams(array $givenParams, array $validParams, array $requiredParams=array()) {
 		$filteredParams = array();
 		foreach ($givenParams as $name => $value) {
 			if (in_array(strtolower($name), $validParams)) {
