@@ -24,13 +24,20 @@ class ContextIO {
 	protected $lastResponse;
 	protected $authHeaders;
 
+	/** @var array  cURL options */
+	protected $curlOptions;
+
 	/**
 	 * Instantiate a new ContextIO object. Your OAuth consumer key and secret can be
 	 * found under the "settings" tab of the developer console (https://console.context.io/#settings)
-	 * @param $key Your Context.IO OAuth consumer key
-	 * @param $secret Your Context.IO OAuth consumer secret
+	 *
+	 * @param string    $key                    Your Context.IO OAuth consumer key
+	 * @param string    $secret                 Your Context.IO OAuth consumer secret
+	 * @param           $access_token
+	 * @param           $access_token_secret
+	 * @param array     $curlOptions            cURL options; assoc array: option => value
 	 */
-	function __construct($key, $secret, $access_token=null, $access_token_secret=null) {
+	function __construct($key, $secret, $access_token=null, $access_token_secret=null, array $curlOptions=array()) {
 		$this->oauthKey = $key;
 		$this->oauthSecret = $secret;
 		$this->accessToken = $access_token;
@@ -41,6 +48,7 @@ class ContextIO {
 		$this->apiVersion = 'lite';
 		$this->lastResponse = null;
 		$this->authHeaders = true;
+		$this->curlOptions = $curlOptions;
 	}
 
 	/**
@@ -854,6 +862,8 @@ class ContextIO {
 		else {
 			$curl = curl_init($req->to_url());
 		}
+
+		curl_setopt_array($curl, $this->curlOptions);
 
 		if ($this->ssl) {
 			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
