@@ -62,6 +62,22 @@ define('FOLDER', 'A FOLDER NAME');
 $params = array('label'=>LABEL, 'folder'=>FOLDER);
 $r = $contextio->listMessages(USER_ID, $params);
 print_r($r);
+
+// It's a good idea to do error handling on your api calls. You can get the last error response from the client,
+// and then retry the call
+$x = 0;
+while($x < 10) { //retry the call up to 10 times if it fails
+	$r = $contextio->listUsers();
+	if($r != false) {
+		print_r($r->getData());
+		break;
+	} else {
+		print_r($contextio->getLastResponse());
+		$x++;
+		sleep(5); //don't retry immediately
+	}
+}
+
 ```
 
 Refer to the class.contextio.php file to see a list of all the methods.
