@@ -4,10 +4,11 @@
     "keywords": ["contextio", "imap"],
     "homepage": "http://context.io/",
     "type": "library",
+    "license": "Apache-2.0",
     "authors": [
         {
-            "name": "Tony Blank"
-	}
+            "name": "Susi Rathmann, Cecy Correa"
+    }
     ],
     "require": {
         "php": ">=5.3.0"

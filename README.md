@@ -22,7 +22,7 @@ directory, then ```require_once '/class.contextio.php';``` in your code.
 You can install the library by adding it as a dependency to your composer.json.
 
 "require": {
-  "contextio/php-contextio-lite": "dev-master"
+  "contextio/php-contextio-lite": "1.3"
 }
 
 ## Examples
@@ -63,8 +63,8 @@ $params = array('label'=>LABEL, 'folder'=>FOLDER);
 $r = $contextio->listMessages(USER_ID, $params);
 print_r($r);
 
-// It's a good idea to do error handling on your api calls. You can get the last error response from the client,
-// and then retry the call
+// It's a good idea to do error handling on your api calls. You can get the last error response 
+// from the client, and then retry the call
 $x = 0;
 while($x < 10) { //retry the call up to 10 times if it fails
 	$r = $contextio->listUsers();
