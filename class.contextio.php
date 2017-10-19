@@ -905,8 +905,8 @@ class ContextIO {
 	 *
 	 * @param string    $user
 	 * @param array     $params     Query parameters for the API call <br />
-	 *                              required keys: 'callback_url', 'failure_notif_url' <br />
-	 *                              possible keys: 'filter_to', 'filter_from', 'filter_cc', 'filter_subject', 'filter_thread', 'filter_new_important', 'filter_file_name', 'filter_file_revisions', 'sync_period', 'callback_url', 'failure_notif_url','filter_folder_added', 'filter_folder_removed', 'filter_to_domain', 'filter_from_domain'
+	 *                              required keys: 'callback_url' <br />
+	 *                              possible keys: 'filter_to', 'filter_from', 'filter_cc', 'filter_subject', 'filter_thread', 'filter_file_name', 'callback_url', 'filter_folder_added', 'filter_folder_removed', 'filter_to_domain', 'filter_from_domain', 'include_body', 'body_type', 'include_header', 'receive_drafts', 'receive_all_changes'
 	 *
 	 * @throws InvalidArgumentException
 	 *
@@ -916,7 +916,7 @@ class ContextIO {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
 		}
-		$params = $this->_filterParams($params, array('include_body','filter_to', 'filter_from', 'filter_cc', 'filter_subject', 'filter_thread', 'filter_new_important', 'filter_file_name', 'filter_file_revisions', 'sync_period', 'callback_url', 'failure_notif_url','filter_folder_added','filter_folder_removed','filter_to_domain','filter_from_domain'), array('callback_url','failure_notif_url'));
+		$params = $this->_filterParams($params, array('include_body','filter_to', 'filter_from', 'filter_cc', 'filter_subject', 'filter_thread', 'filter_file_name', 'callback_url', 'filter_folder_added','filter_folder_removed','filter_to_domain','filter_from_domain', 'body_type', 'include_header', 'receive_drafts', 'receive_all_changes'), array('callback_url'));
 		if ($params === false) {
 			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
@@ -962,7 +962,7 @@ class ContextIO {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('user must be string representing userId');
 		}
-		$params = $this->_filterParams($params, array('webhook_id', 'active'), array('webhook_id','active'));
+		$params = $this->_filterParams($params, array('include_body','filter_to', 'filter_from', 'filter_cc', 'filter_subject', 'filter_thread', 'filter_file_name', 'callback_url', 'filter_folder_added','filter_folder_removed','filter_to_domain','filter_from_domain', 'body_type', 'include_header', 'receive_drafts', 'receive_all_changes', 'active'), array('webhook_id'));
 		if ($params === false) {
 			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
