@@ -969,6 +969,94 @@ class ContextIO {
 		return $this->post($user, 'webhooks/' . $params['webhook_id'], $params);
 	}
 
+    /**
+     * List Application Level Webhooks
+     * @return ContextIOResponse|false
+     */
+    public function listApplicationWebhooks() {
+        return $this->get(null, 'webhooks');
+    }
+
+    /**
+     *
+     * @param string  $webhookId a string with "webhook_id" as its key
+     *
+     * @return ContextIOResponse|false
+     */
+    public function getApplicationWebhook($webhookId) {
+        if (is_string($webhookId)) {
+            $params = array('webhook_id' => $webhookId);
+        }
+        else {
+            $params = $this->_filterParams($webhookId, array('webhook_id'), array('webhook_id'));
+            if ($params === false) {
+                throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+            }
+        }
+        return $this->get(null, 'webhooks/' . rawurlencode($params['webhook_id']));
+    }
+
+    /**
+     *
+     * @param array     $params     Query parameters for the API call <br />
+     *                              required keys: 'callback_url' <br />
+     *                              possible keys: 'filter_to', 'filter_from', 'filter_cc', 'filter_subject', 'filter_thread', 'filter_file_name', 'callback_url', 'filter_folder_added', 'filter_folder_removed', 'filter_to_domain', 'filter_from_domain', 'include_body', 'body_type', 'include_header', 'receive_drafts', 'receive_all_changes', 'receive_historical'
+     *
+     * @throws InvalidArgumentException
+     *
+     * @return ContextIOResponse|false
+     */
+    public function addApplicationWebhook(array $params) {
+        $params = $this->_filterParams($params, array('include_body','filter_to', 'filter_from', 'filter_cc', 'filter_subject', 'filter_thread', 'filter_file_name', 'callback_url', 'filter_folder_added','filter_folder_removed','filter_to_domain','filter_from_domain', 'body_type', 'include_header', 'receive_drafts', 'receive_all_changes', 'receive_historical'), array('callback_url'));
+        if ($params === false) {
+            throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+        }
+        return $this->post(null, 'webhooks/', $params);
+    }
+
+    /**
+     *
+     * @param string  $webhookId     string with "webhook_id" as its key
+     *
+     * @throws InvalidArgumentException
+     *
+     * @return ContextIOResponse|false
+     */
+    public function deleteApplicationWebhook($webhookId) {
+        if (is_string($webhookId)) {
+            $params = array('webhook_id' => $webhookId);
+        }
+        else {
+            $params = $this->_filterParams($webhookId, array('webhook_id'), array('webhook_id'));
+            if ($params === false) {
+                throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+            }
+        }
+        return $this->delete(null, 'webhooks/' . $params['webhook_id']);
+    }
+
+    /**
+     *
+     * @param string webhookId      string of webhook id you wish to modify
+     *
+     * @param array     $params     Query parameters for the API call <br />
+     *                              required keys: 'webhook_id', 'callback_url', 'active'
+     *
+     * @throws InvalidArgumentException
+     *
+     * @return ContextIOResponse|false
+     */
+    public function modifyApplicationWebhook($webhookId, $params) {
+        if (is_null($webhookId) || ! is_string($webhookId)) {
+            throw new InvalidArgumentException('webhookId missing or not a string');
+        }
+        $params = $this->_filterParams($params, array('active','include_body','filter_to', 'filter_from', 'filter_cc', 'filter_subject', 'filter_thread', 'filter_file_name', 'callback_url', 'filter_folder_added','filter_folder_removed','filter_to_domain','filter_from_domain', 'body_type', 'include_header', 'receive_drafts', 'receive_all_changes', 'receive_historical'), array('callback_url', 'active'));
+        if ($params === false) {
+            throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
+        }
+        return $this->post(null, 'webhooks/' . $webhookId, $params);
+    }
+
 	/**
 	 * Specify the API endpoint.
 	 *
