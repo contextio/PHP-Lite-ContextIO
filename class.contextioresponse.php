@@ -147,6 +147,14 @@ class ContextIOResponse {
 
 	/**
 	 *
+	 * @return array
+	 */
+	public function getDecodedResponse() {
+		return $this->decodedResponse;
+	}
+
+	/**
+	 *
 	 * @return string
 	 */
 	public function getRawResponse() {
