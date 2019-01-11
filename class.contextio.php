@@ -182,7 +182,7 @@ class ContextIO {
 		if (is_null($user) || ! is_string($user) || (! strpos($user, '@') === false)) {
 			throw new InvalidArgumentException('account must be string representing userId');
 		}
-		$params = $this->_filterParams($params, array('label','folder','limit','offset','include_body','include_headers','include_flags','body_type'), array('label','folder'));
+		$params = $this->_filterParams($params, array('label','folder','email','limit','offset','include_body','include_headers','include_flags','body_type'), array('label','folder'));
 		if ($params === false) {
 			throw new InvalidArgumentException("params array contains invalid parameters or misses required parameters");
 		}
