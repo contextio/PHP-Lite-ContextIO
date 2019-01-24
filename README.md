@@ -1,8 +1,7 @@
-# Context.IO
+# Context.IO - [DEPRECATED]
 
 * [API Documentation](http://context.io/docs/lite/)
 * [API Explorer](https://console.context.io/#explore)
-* [Sign Up](http://context.io)
 
 ## Description
 
